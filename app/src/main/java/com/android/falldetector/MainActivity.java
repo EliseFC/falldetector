@@ -1,6 +1,10 @@
 package com.android.falldetector;
 
 import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -9,13 +13,21 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
-public class MainActivity extends AppCompatActivity {
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Calendar;
+import java.util.Date;
+
+public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -31,6 +43,12 @@ public class MainActivity extends AppCompatActivity {
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
+
+    private SensorManager mSensorManager;
+    private Sensor mAccelerometer;
+
+    private final String mFileName = "acc.csv";
+    private FileWriter mFileWriter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,8 +68,72 @@ public class MainActivity extends AppCompatActivity {
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
 
+        mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
+        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
+        mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_GAME);
+
+        File file = new File(getFilesDir(), mFileName);
+        try {
+            mFileWriter = new FileWriter(file, false);
+            Log.d("MainActivity", String.valueOf(getFilesDir()));
+            FileWriter fw = new FileWriter(file, true);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_GAME);
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        if (event.sensor.getType() != Sensor.TYPE_GRAVITY) {
+            return;
+        }
+        float ax = event.values[0];
+        float ay = event.values[1];
+        float az = event.values[2];
+//        TextView tvAx = (TextView)findViewById(R.id.ax);
+//        TextView tvAy = (TextView)findViewById(R.id.ay);
+//        TextView tvAz = (TextView)findViewById(R.id.az);
+//        tvAx.setText("ax=" + ax);
+//        tvAy.setText("ay=" + ay);
+//        tvAz.setText("az=" + az);
+
+        String filename = "acc.csv";
+        Calendar calendar = Calendar.getInstance();
+        Date date = calendar.getTime();
+
+        try {
+            mFileWriter.append(date.toString() + ',');
+            mFileWriter.append(Float.toString(ax) + ',');
+            mFileWriter.append(Float.toString(ay) + ',');
+            mFileWriter.append(Float.toString(az) + '\n');
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+//        Log.d("FallDetectorExp", "ax="+ax);
+//        Log.d("FallDetectorExp", "ay="+ay);
+//        Log.d("FallDetectorExp", "az="+az);
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        try {
+            mFileWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

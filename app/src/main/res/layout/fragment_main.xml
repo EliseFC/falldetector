@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -12,5 +13,23 @@
         android:id="@+id/section_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
+    <TextView
+        android:id="@+id/ax"
+        android:layout_below="@id/section_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ax: " />
+    <TextView
+        android:id="@+id/ay"
+        android:layout_below="@id/ax"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ay: " />
+    <TextView
+        android:id="@+id/az"
+        android:layout_below="@id/ay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="az: " />
 
 </RelativeLayout>
