@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private TimerTask ok;
 
     private final int MAX_RECORDS = 200;
-    private final int NUM_FALL_THRESHOLD = 5;
+    private final int NUM_FALL_THRESHOLD = 16;
     private final double FALL_MAG_THRESHOLD = 35;
     private final int REST_THRESHOLD = 20;
 
