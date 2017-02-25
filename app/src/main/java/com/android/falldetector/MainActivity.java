@@ -50,7 +50,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private boolean cycle;
 
     private float[] accel_data;
-    //private float[] accel_diff;
 
     private boolean isAYOActive;
     private final String fileName = "acc.csv";
@@ -129,10 +128,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         Date date = calendar.getTime();
 
         try {
-            mFileWriter.append(date.toString()).append(',')
-                    .append(Float.toString(ax)).append(',')
-                    .append(Float.toString(ay)).append(',')
-                    .append(Float.toString(az)).append('\n');
+//            mFileWriter.append(date.toString()).append(',')
+//                    .append(Float.toString(ax)).append(',')
+//                    .append(Float.toString(ay)).append(',')
+//                    .append(Float.toString(az)).append('\n');
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -148,13 +147,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             boolean newRecordTap = accelValue < FALL_MAG_THRESHOLD;
             boolean oldRecordTap = accel_data[currRecordInd] < FALL_MAG_THRESHOLD;
             if (newRecordTap) {
-                //boolean oldRecordTap = accel_diff[(currRecordInd + MAX_RECORDS - 1) % MAX_RECORDS] < FALL_THRESHOLD;
                 if (!oldRecordTap || !cycle) {
                     accel_count++;
                 }
                 idle_count = 0;
             } else {
-                //boolean oldRecordTap = accel_diff[(currRecordInd + MAX_RECORDS - 1) % MAX_RECORDS] < FALL_THRESHOLD;
                 if (oldRecordTap && cycle) {
                     accel_count--;
                 }
@@ -340,5 +337,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         } else checkImmobile.schedule(ok, 14400000); //4 Hours == 14400000
 
         return super.dispatchTouchEvent(event);  //Allows event to continue propagating
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        try {
+            mFileWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

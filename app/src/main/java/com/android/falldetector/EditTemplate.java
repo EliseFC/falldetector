@@ -33,7 +33,6 @@ public class EditTemplate extends Activity {
     // Text fields
     private EditText textName;
     private EditText textCell;
-    private EditText textEmail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,7 +67,6 @@ public class EditTemplate extends Activity {
         textName = (EditText) findViewById(R.id.editTextName);
         textCell = (EditText) findViewById(R.id.editTextCell);
         textCell.addTextChangedListener(new PhoneNumberFormattingTextWatcher());
-        textEmail = (EditText) findViewById(R.id.editTextEmail);
 
         contact = new Contact();
         if (loadContact()) {
@@ -143,13 +141,11 @@ public class EditTemplate extends Activity {
     private void retrieveContactInfo() {
         contact.name = textName.getText().toString();
         contact.cell = textCell.getText().toString();
-        contact.email = textEmail.getText().toString();
     }
 
     private void populateContactInfo() {
         textName.setText(contact.name);
         textCell.setText(contact.cell);
-        textEmail.setText(contact.email);
     }
 
     private void disableContactEntry() {
@@ -164,12 +160,6 @@ public class EditTemplate extends Activity {
         textCell.setCursorVisible(false);
         textCell.setClickable(false);
         textCell.setEnabled(false);
-
-        textEmail.setFocusable(false);
-        textEmail.setFocusableInTouchMode(false);
-        textEmail.setCursorVisible(false);
-        textEmail.setClickable(false);
-        textEmail.setEnabled(false);
     }
 
     private void enableContactEntry() {
@@ -185,12 +175,6 @@ public class EditTemplate extends Activity {
         textCell.setCursorVisible(true);
         textCell.setClickable(true);
         textCell.setEnabled(true);
-
-        textEmail.setFocusable(true);
-        textEmail.setFocusableInTouchMode(true);
-        textEmail.setCursorVisible(true);
-        textEmail.setClickable(true);
-        textEmail.setEnabled(true);
     }
 
     private boolean validateData() {
@@ -201,11 +185,6 @@ public class EditTemplate extends Activity {
 
         if (!validateCell(textCell.getText().toString())) {
             Toast.makeText(EditTemplate.this, "Please enter a valid Cell phone number.", Toast.LENGTH_SHORT).show();
-            return false;
-        }
-
-        if (!validateEmail()) {
-            Toast.makeText(EditTemplate.this, "Please enter a valid email address.", Toast.LENGTH_SHORT).show();
             return false;
         }
 
@@ -225,19 +204,4 @@ public class EditTemplate extends Activity {
         }
         return isValid;
     }
-
-    private boolean validateEmail() {
-        boolean isValid = false;
-
-        String expression = "^[\\w\\.-]+@([\\w\\-]+\\.)+[A-Z]{2,4}$";
-        CharSequence inputStr = textEmail.getText().toString();
-
-        Pattern pattern = Pattern.compile(expression, Pattern.CASE_INSENSITIVE);
-        Matcher matcher = pattern.matcher(inputStr);
-        if (matcher.matches()) {
-            isValid = true;
-        }
-        return isValid;
-    }
-
 }
