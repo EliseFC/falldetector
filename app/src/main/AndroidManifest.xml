@@ -2,6 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.android.falldetector">
 
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.SEND_SMS" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -22,6 +27,12 @@
         <activity
             android:name=".EditTemplate">
         </activity>
+        <activity
+            android:name=".Verification"
+            android:screenOrientation="portrait"
+            android:label="@string/title_activity_verification" >
+        </activity>
+
     </application>
 
 </manifest>
