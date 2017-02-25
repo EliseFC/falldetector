@@ -13,12 +13,12 @@ import com.android.falldetector.R;
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link history.OnFragmentInteractionListener} interface
+ * {@link History.OnFragmentInteractionListener} interface
  * to handle interaction events.
- * Use the {@link history#newInstance} factory method to
+ * Use the {@link History#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class history extends Fragment {
+public class History extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -30,7 +30,7 @@ public class history extends Fragment {
 
     private OnFragmentInteractionListener mListener;
 
-    public history() {
+    public History() {
         // Required empty public constructor
     }
 
@@ -40,11 +40,11 @@ public class history extends Fragment {
      *
      * @param param1 Parameter 1.
      * @param param2 Parameter 2.
-     * @return A new instance of fragment history.
+     * @return A new instance of fragment History.
      */
     // TODO: Rename and change types and number of parameters
-    public static history newInstance(String param1, String param2) {
-        history fragment = new history();
+    public static History newInstance(String param1, String param2) {
+        History fragment = new History();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);

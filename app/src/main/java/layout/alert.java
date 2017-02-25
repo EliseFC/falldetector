@@ -16,12 +16,12 @@ import com.android.falldetector.R;
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link alert.OnFragmentInteractionListener} interface
+ * {@link Alert.OnFragmentInteractionListener} interface
  * to handle interaction events.
- * Use the {@link alert#newInstance} factory method to
+ * Use the {@link Alert#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class alert extends Fragment {
+public class Alert extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -39,7 +39,7 @@ public class alert extends Fragment {
 
     private OnFragmentInteractionListener mListener;
 
-    public alert() {
+    public Alert() {
         // Required empty public constructor
     }
 
@@ -49,11 +49,11 @@ public class alert extends Fragment {
      *
      * @param param1 Parameter 1.
      * @param param2 Parameter 2.
-     * @return A new instance of fragment alert.
+     * @return A new instance of fragment Alert.
      */
     // TODO: Rename and change types and number of parameters
-    public static alert newInstance(String param1, String param2) {
-        alert fragment = new alert();
+    public static Alert newInstance(String param1, String param2) {
+        Alert fragment = new Alert();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
