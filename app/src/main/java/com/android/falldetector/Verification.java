@@ -1,20 +1,25 @@
 package com.android.falldetector;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.telephony.SmsManager;
 import android.text.format.Time;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.Toast;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -25,6 +30,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class Verification extends Activity {
+    private static final int MY_PERMISSIONS_REQUEST_SEND_SMS = 99;
     WindowManager.LayoutParams layoutParams;
     boolean bright;
     Uri notification;
@@ -36,6 +42,7 @@ public class Verification extends Activity {
     TimerTask lvl3;
 
     PowerManager.WakeLock wl;
+    Contact mContact;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -138,20 +145,37 @@ public class Verification extends Activity {
 
     public void sendAndCall(View view) {
         //Contact emergency number
-        Contact c = loadContact();
+        mContact = loadContact();
 
-        if (c != null) {
-            String number = c.cell;
+        if (mContact != null) {
+            String number = mContact.cell;
             Time now = new Time();
             now.setToNow();
             String msg = "[SmartAlert]\n(" + now.format("%D, %R") + ")\nThere's a good chance I might have fallen and am injured. Please help.";
 
             SmsManager man = SmsManager.getDefault();
-            man.sendTextMessage(number, null, msg, null, null);
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                 // Should we show an explanation?
+                 if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                        Manifest.permission.SEND_SMS)) {
+                            // Show an explanation to the user *asynchronously* -- don't block
+                            // this thread waiting for the user's response! After the user
+                            // sees the explanation, try again to request the permission.
+                        } else {
+                            // No explanation needed, we can request the permission.
+                            ActivityCompat.requestPermissions(this,
+                                            new String[]{Manifest.permission.SEND_SMS},
+                                    MY_PERMISSIONS_REQUEST_SEND_SMS);
+                        }
+            }
+            else {
+                man.sendTextMessage(number, null, msg, null, null);
+            }
 
-            Intent callIntent = new Intent(Intent.ACTION_CALL);
-            callIntent.setData(Uri.parse("tel:" + c.cell));
-            startActivity(callIntent);
+//            Intent callIntent = new Intent(Intent.ACTION_CALL);
+//            callIntent.setData(Uri.parse("tel:" + c.cell));
+//            startActivity(callIntent);
 
             finish();
         } else {
@@ -159,4 +183,31 @@ public class Verification extends Activity {
         }
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_SEND_SMS: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    mContact = loadContact();
+                    if (mContact != null) {
+                        String number = mContact.cell;
+                        Time now = new Time();
+                        now.setToNow();
+                        String msg = "[SmartAlert]\n(" + now.format("%D, %R") + ")\nThere's a good chance I might have fallen and am injured. Please help.";
+                        SmsManager man = SmsManager.getDefault();
+                        man.sendTextMessage(number, null, msg, null, null);
+                    }
+                } else {
+                    Toast.makeText(Verification.this, "SEND_SMS permission denied, cannot send SMS!", Toast.LENGTH_SHORT).show();
+                }
+                return;
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request
+        }
+    }
 }

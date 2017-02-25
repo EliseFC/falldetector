@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private TimerTask ok;
 
     private final int MAX_RECORDS = 200;
-    private final int NUM_FALL_THRESHOLD = 16;
+    private final int NUM_FALL_THRESHOLD = 5;
     private final double FALL_MAG_THRESHOLD = 35;
     private final int REST_THRESHOLD = 20;
 
@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     //private float[] accel_diff;
 
     private boolean isAYOActive;
+    private final String fileName = "acc.csv";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,11 +89,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_GAME);
 
-        String fileName = "acc.csv";
         File file = new File(getFilesDir(), fileName);
         try {
             mFileWriter = new FileWriter(file, false);
-            Log.d("MainActivity", String.valueOf(getFilesDir()));
+//            Log.d("MainActivity", String.valueOf(getFilesDir()));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -102,6 +102,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onResume() {
         super.onResume();
         mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_GAME);
+        File file = new File(getFilesDir(), fileName);
+        try {
+            mFileWriter = new FileWriter(file, true);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         isAYOActive = false;
         currRecordInd = 0;
         accel_count = 0;
@@ -296,6 +302,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     protected void onPause() {
         super.onPause();
+        try {
+            mFileWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void onSettingsButtonClick(View v) {
