@@ -13,6 +13,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -51,10 +52,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private float[] accel_data;
 
     private boolean isAYOActive;
-    private final String fileName = "acc.csv";
+    private static final String fileName = "acc.csv";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d("MainActivity", "------> onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -98,14 +100,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     protected void onResume() {
+        Log.d("MainActivity", "------> onResume");
         super.onResume();
-        mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_GAME);
-        File file = new File(getFilesDir(), fileName);
-        try {
-            mFileWriter = new FileWriter(file, true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
         isAYOActive = false;
         currRecordInd = 0;
         accel_count = 0;
@@ -116,6 +112,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     public void onSensorChanged(SensorEvent event) {
+        Log.d("MainActivity", "==============> onSensorChanged");
         if (event.sensor.getType() != Sensor.TYPE_ACCELEROMETER) {
             return;
         }
@@ -127,10 +124,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         Date date = calendar.getTime();
 
         try {
-//            mFileWriter.append(date.toString()).append(',')
-//                    .append(Float.toString(ax)).append(',')
-//                    .append(Float.toString(ay)).append(',')
-//                    .append(Float.toString(az)).append('\n');
+            mFileWriter.append(date.toString()).append(',')
+                    .append(Float.toString(ax)).append(',')
+                    .append(Float.toString(ay)).append(',')
+                    .append(Float.toString(az)).append('\n');
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -181,16 +178,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     protected void onStop() {
+        Log.d("MainActivity", "------> onStop");
         super.onStop();
-        try {
-            mFileWriter.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        Log.d("MainActivity", "------> onCreateOptionMenu");
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
@@ -243,6 +237,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
+            Log.d("PlaceholderFragment", "---> onCreateView");
             if (getArguments().getInt(ARG_SECTION_NUMBER) == 1) {
                 return inflater.inflate(R.layout.fragment_wave, container, false);
             } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 2) {
@@ -269,6 +264,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         @Override
         public Fragment getItem(int position) {
+            Log.d("SectionsPagerAdapter", "---> getItem " + position);
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
             return PlaceholderFragment.newInstance(position + 1);
@@ -297,12 +293,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     protected void onPause() {
+        Log.d("MainActivity", "------> onPause");
         super.onPause();
-        try {
-            mFileWriter.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     public void onSettingsButtonClick(View v) {
@@ -340,7 +332,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     protected void onDestroy() {
+        Log.d("MainActivity", "------> onDestroy");
         super.onDestroy();
+        mSensorManager.unregisterListener(this);
         try {
             mFileWriter.close();
         } catch (IOException e) {
