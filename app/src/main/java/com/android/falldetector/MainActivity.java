@@ -5,6 +5,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -26,6 +27,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -53,6 +55,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private boolean isAYOActive;
     private static final String fileName = "acc.csv";
+    private ViewPager mViewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,11 +81,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         /*
       The {@link ViewPager} that will host the section contents.
      */
-        ViewPager viewPager = (ViewPager) findViewById(R.id.container);
-        viewPager.setAdapter(sectionsPagerAdapter);
+        mViewPager = (ViewPager) findViewById(R.id.container);
+        mViewPager.setAdapter(sectionsPagerAdapter);
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
-        tabLayout.setupWithViewPager(viewPager);
+        tabLayout.setupWithViewPager(mViewPager);
 
         isAYOActive = false;
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
@@ -120,9 +123,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         float ay = event.values[1];
         float az = event.values[2];
 
+        //---- display sensor data in Wave fragment
+        SectionsPagerAdapter adapter = ((SectionsPagerAdapter)mViewPager.getAdapter());
+        Wave waveFrag = (Wave)adapter.getFragment(0);
+        if (waveFrag != null) {
+            waveFrag.updateView(ax, ay, az);
+        }
+
+        //---- save sensor data in file
         Calendar calendar = Calendar.getInstance();
         Date date = calendar.getTime();
-
         try {
             mFileWriter.append(date.toString()).append(',')
                     .append(Float.toString(ax)).append(',')
@@ -132,6 +142,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             e.printStackTrace();
         }
 
+        //---- fall detection
         // 1) get new accelerometer reading
         float accelValue = ax * ax + ay * ay + az * az;
 
@@ -238,9 +249,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             Log.d("PlaceholderFragment", "---> onCreateView");
-            if (getArguments().getInt(ARG_SECTION_NUMBER) == 1) {
-                return inflater.inflate(R.layout.fragment_wave, container, false);
-            } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 2) {
+            if (getArguments().getInt(ARG_SECTION_NUMBER) == 2) {
                 return inflater.inflate(R.layout.fragment_alert, container, false);
             } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 3) {
                 return inflater.inflate(R.layout.fragment_history, container, false);
@@ -262,12 +271,35 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             super(fm);
         }
 
+        HashMap<Integer, Fragment> mPageReferenceMap = new HashMap<>();
+
+        @Override
+        public Object instantiateItem(ViewGroup container, int position) {
+            Fragment fragment = (Fragment) super.instantiateItem(container, position);
+            mPageReferenceMap.put(position, fragment);
+            return fragment;
+        }
+
+        @Override
+        public void destroyItem(ViewGroup container, int position, Object object) {
+            super.destroyItem(container, position, object);
+            mPageReferenceMap.remove(position);
+        }
+
+        public Fragment getFragment(int key) {
+            return mPageReferenceMap.get(key);
+        }
+
         @Override
         public Fragment getItem(int position) {
             Log.d("SectionsPagerAdapter", "---> getItem " + position);
             // getItem is called to instantiate the fragment for the given page.
-            // Return a PlaceholderFragment (defined as a static inner class below).
-            return PlaceholderFragment.newInstance(position + 1);
+            // Return a Fragment.
+            if (position == 0) {
+                return Wave.newInstance(position + 1);
+            } else {
+                return PlaceholderFragment.newInstance(position + 1);
+            }
         }
 
         @Override
