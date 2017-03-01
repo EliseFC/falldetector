@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private TimerTask ok;
 
     private final int MAX_RECORDS = 200;
-    private final int NUM_FALL_THRESHOLD = 16;
+    private final int NUM_FALL_THRESHOLD = 11;
     private final double FALL_MAG_THRESHOLD = 35;
     private final int REST_THRESHOLD = 20;
 
@@ -150,7 +150,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (currRecordInd != 0) { // if not the very first record
 
             // 3) update accel_count
-            // check if in cycle, and if so if existing record is above or below DIFF_THRESHOLD as well
             boolean newRecordTap = accelValue < FALL_MAG_THRESHOLD;
             boolean oldRecordTap = accel_data[currRecordInd] < FALL_MAG_THRESHOLD;
             if (newRecordTap) {

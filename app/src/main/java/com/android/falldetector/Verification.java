@@ -151,7 +151,7 @@ public class Verification extends Activity {
             String number = mContact.cell;
             Time now = new Time();
             now.setToNow();
-            String msg = "[SmartAlert]\n(" + now.format("%D, %R") + ")\nThere's a good chance I might have fallen and am injured. Please help.";
+            String msg = "[Alert]\n(" + now.format("%D, %R") + ")\nI might have fallen. Please help. - Sent by FallDetector";
 
             SmsManager man = SmsManager.getDefault();
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS)
