@@ -13,7 +13,7 @@ import java.util.HashMap;
  * Created by elise on 2017-02-25.
  */
 
-public class DBHelper extends SQLiteOpenHelper {
+public class HistoryDBHelper extends SQLiteOpenHelper {
     public static final String TABLE = "HISTORY";
 
     public static final String KEY_ID = "time";
@@ -24,7 +24,7 @@ public class DBHelper extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 4;
     private static final String DATABASE_NAME = "DetectInform.db";  //name of the database
 
-    public DBHelper(Context context) {
+    public HistoryDBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
