@@ -43,33 +43,20 @@ public class HistoryDBHelper extends SQLiteOpenHelper {
 
     }
 
-    /*
-    public boolean insertData () {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(KEY_ID, "20131101");
-        contentValues.put(KEY_location, "01234");
-        contentValues.put(KEY_evalu, 1);
-        Log.v(KEY_ID,"ID");
-        db.insert(TABLE, null, contentValues);
-        return true;
-    }*/
-
     public boolean insertData(String time_id, String location, int eval) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put(KEY_ID, time_id);
         contentValues.put(KEY_location, location);
         contentValues.put(KEY_evalu, eval);
-        db.insert(TABLE, null, contentValues);
-        return true;
+        long newRowId = db.insert(TABLE, null, contentValues);
+        return newRowId != -1;
     }
 
     //delete information from database by Prime Key
     public void deleteData(String time_id, String location, int eval) {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(TABLE, KEY_ID + "=?", new String[]{String.valueOf(KEY_ID)});
-        db.close();
+        db.delete(TABLE, KEY_ID + "=?", new String[]{time_id});
     }
 
     public ArrayList<HashMap<String, String>> getList() {
@@ -78,7 +65,7 @@ public class HistoryDBHelper extends SQLiteOpenHelper {
                 KEY_ID + "," +
                 KEY_location + ","
                 + KEY_evalu + " FROM " + TABLE;
-        ArrayList<HashMap<String, String>> studentList = new ArrayList<HashMap<String, String>>();
+        ArrayList<HashMap<String, String>> recordList = new ArrayList<HashMap<String, String>>();
         Cursor cursor = db.rawQuery(selectQuery, null);
 
         if (cursor.moveToFirst()) {
@@ -87,13 +74,10 @@ public class HistoryDBHelper extends SQLiteOpenHelper {
                 table.put("time", cursor.getString(cursor.getColumnIndex(this.KEY_ID)));
                 table.put("location", cursor.getString(cursor.getColumnIndex(this.KEY_location)));
                 table.put("evaluation", cursor.getString(cursor.getColumnIndex(this.KEY_evalu)));
-                studentList.add(table);
+                recordList.add(table);
             } while (cursor.moveToNext());
         }
         cursor.close();
-        db.close();
-        return studentList;
+        return recordList;
     }
-
-
 }

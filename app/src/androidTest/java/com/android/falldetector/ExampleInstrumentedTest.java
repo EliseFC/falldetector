@@ -4,6 +4,8 @@ import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -16,6 +18,23 @@ import static org.junit.Assert.*;
  */
 @RunWith(AndroidJUnit4.class)
 public class ExampleInstrumentedTest {
+    private HistoryDataSource mDataSource;
+    @Before
+    public void setUp() {
+        mDataSource = new HistoryDataSource(InstrumentationRegistry.getTargetContext());
+        mDataSource.open();
+    }
+
+    @After
+    public void finish() {
+        mDataSource.close();
+    }
+
+    @Test
+    public void testPreConditions() {
+        assertNotNull(mDataSource);
+    }
+
     @Test
     public void useAppContext() throws Exception {
         // Context of the app under test.
@@ -23,4 +42,15 @@ public class ExampleInstrumentedTest {
 
         assertEquals("com.android.falldetector", appContext.getPackageName());
     }
+
+    @Test
+    public void testInsertRecords() {
+        assertTrue(mDataSource.insertRec());
+    }
+
+//    @Test
+//    public void testDeleteAll() {
+//        mDataSource.deleteAll();
+//        assertTrue(mDataSource.getAllRec().isEmpty());
+//    }
 }
