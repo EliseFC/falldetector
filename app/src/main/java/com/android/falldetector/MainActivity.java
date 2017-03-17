@@ -250,11 +250,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             Log.d("PlaceholderFragment", "---> onCreateView");
             if (getArguments().getInt(ARG_SECTION_NUMBER) == 2) {
                 return inflater.inflate(R.layout.fragment_alert, container, false);
-            } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 3) {
-                return inflater.inflate(R.layout.fragment_history, container, false);
             } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 4) {
                 return inflater.inflate(R.layout.fragment_statistics, container, false);
-            } else {
+            } else { // should not run into this case
                 return inflater.inflate(R.layout.fragment_main, container, false);
             }
         }
@@ -296,7 +294,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             // Return a Fragment.
             if (position == 0) {
                 return Wave.newInstance(position + 1);
-            } else {
+            } else if (position == 1) {
+                return PlaceholderFragment.newInstance(position + 1);
+            } else if (position == 2) {
+                return History.newInstance(position + 1);
+            } else if (position == 3) {
+                return PlaceholderFragment.newInstance(position + 1);
+            } else { // should not run into this case
                 return PlaceholderFragment.newInstance(position + 1);
             }
         }
