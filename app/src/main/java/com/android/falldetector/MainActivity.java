@@ -99,8 +99,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             e.printStackTrace();
         }
         mDbHelper = new HistoryDBHelper(this);
-        mDbHelper.insertData(Calendar.getInstance().getTime().toString(),
-                "Thunder Bay", 1);
     }
 
     @Override
@@ -134,9 +132,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         //---- save sensor data in file
         Calendar calendar = Calendar.getInstance();
-        Date date = calendar.getTime();
+        Date currTime = calendar.getTime();
         try {
-            mFileWriter.append(date.toString()).append(',')
+            mFileWriter.append(currTime.toString()).append(',')
                     .append(Float.toString(ax)).append(',')
                     .append(Float.toString(ay)).append(',')
                     .append(Float.toString(az)).append('\n');
@@ -179,6 +177,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 Intent verification = new Intent(this, Verification.class);
                 startActivity(verification);
                 currRecordInd++; //Remove this line IF text of Accelerometer is different.
+                mDbHelper.insertData(currTime.toString(), "Thunder Bay", 1);
             }
         }
     }
