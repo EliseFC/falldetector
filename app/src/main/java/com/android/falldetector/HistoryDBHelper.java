@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.provider.BaseColumns;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,7 +22,7 @@ public class HistoryDBHelper extends SQLiteOpenHelper {
     public static final String KEY_evalu = "evaluation";
 
 
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 1;
     private static final String DATABASE_NAME = "DetectInform.db";  //name of the database
 
     public HistoryDBHelper(Context context) {
@@ -32,9 +33,10 @@ public class HistoryDBHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         //create data list
         String CREATE_TABLE_DETECTINFORM = "CREATE TABLE " + TABLE
-                + "( " + KEY_ID + " Time ,"
-                + " " + KEY_location + " " + "Location, "
-                + " " + KEY_evalu + " integer)";
+                + "(" + BaseColumns._ID + " INTEGER PRIMARY KEY, "
+                + KEY_ID + " TEXT, "
+                + KEY_location + " TEXT, "
+                + KEY_evalu + " INTEGER)";
         db.execSQL(CREATE_TABLE_DETECTINFORM);
     }
 
@@ -59,14 +61,15 @@ public class HistoryDBHelper extends SQLiteOpenHelper {
         db.delete(TABLE, KEY_ID + "=?", new String[]{time_id});
     }
 
-    public ArrayList<HashMap<String, String>> getList() {
+    public Cursor getCursor() {
         SQLiteDatabase db = this.getReadableDatabase();
-        String selectQuery = "SELECT " +
-                KEY_ID + "," +
-                KEY_location + ","
-                + KEY_evalu + " FROM " + TABLE;
+        String selectQuery = "SELECT * FROM " + TABLE;
+        return db.rawQuery(selectQuery, null);
+    }
+
+    public ArrayList<HashMap<String, String>> getList() {
         ArrayList<HashMap<String, String>> recordList = new ArrayList<HashMap<String, String>>();
-        Cursor cursor = db.rawQuery(selectQuery, null);
+        Cursor cursor = this.getCursor();
 
         if (cursor.moveToFirst()) {
             do {

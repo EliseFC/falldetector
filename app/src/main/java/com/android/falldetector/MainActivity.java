@@ -5,7 +5,6 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -34,9 +33,9 @@ import java.util.TimerTask;
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
     private SensorManager mSensorManager;
-    private Sensor mAccelerometer;
 
     private FileWriter mFileWriter;
+    private HistoryDBHelper mDbHelper;
 
     private Timer checkImmobile = new Timer();
     private TimerTask ok;
@@ -89,8 +88,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         isAYOActive = false;
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_GAME);
+        Sensor accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
 
         File file = new File(getFilesDir(), fileName);
         try {
@@ -99,6 +98,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         } catch (Exception e) {
             e.printStackTrace();
         }
+        mDbHelper = new HistoryDBHelper(this);
+        mDbHelper.insertData(Calendar.getInstance().getTime().toString(),
+                "Thunder Bay", 1);
     }
 
     @Override
@@ -262,9 +264,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
      * one of the sections/tabs/pages.
      */
-    public class SectionsPagerAdapter extends FragmentPagerAdapter {
+    private class SectionsPagerAdapter extends FragmentPagerAdapter {
 
-        public SectionsPagerAdapter(FragmentManager fm) {
+        SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
         }
 
@@ -283,7 +285,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             mPageReferenceMap.remove(position);
         }
 
-        public Fragment getFragment(int key) {
+        Fragment getFragment(int key) {
             return mPageReferenceMap.get(key);
         }
 
@@ -297,7 +299,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             } else if (position == 1) {
                 return PlaceholderFragment.newInstance(position + 1);
             } else if (position == 2) {
-                return History.newInstance(position + 1);
+                return History.newInstance();
             } else if (position == 3) {
                 return PlaceholderFragment.newInstance(position + 1);
             } else { // should not run into this case
@@ -375,5 +377,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         } catch (IOException e) {
             e.printStackTrace();
         }
+        mDbHelper.close();
     }
 }

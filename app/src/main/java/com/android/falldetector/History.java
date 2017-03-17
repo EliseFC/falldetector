@@ -1,12 +1,15 @@
 package com.android.falldetector;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
+import android.support.v4.widget.SimpleCursorAdapter;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
 
 /**
  * A simple {@link ListFragment} subclass.
@@ -14,9 +17,9 @@ import android.view.ViewGroup;
  * create an instance of this fragment.
  */
 public class History extends ListFragment {
-    private static final String ARG_SECTION_NUMBER = "section_number";
 
-    private int mSectionNumber;
+    private SimpleCursorAdapter mAdapter;
+    private HistoryDBHelper mDbHelper;
 
     public History() {
         // Required empty public constructor
@@ -26,23 +29,25 @@ public class History extends ListFragment {
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param sectionNumber section number of this fragment in the host activity.
      * @return A new instance of fragment History.
      */
-    public static History newInstance(int sectionNumber) {
-        History fragment = new History();
-        Bundle args = new Bundle();
-        args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-        fragment.setArguments(args);
-        return fragment;
+    public static History newInstance() {
+        return new History();
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mSectionNumber = getArguments().getInt(ARG_SECTION_NUMBER);
-        }
+
+        mDbHelper = new HistoryDBHelper(getContext());
+
+        Cursor cursor = mDbHelper.getCursor();
+        String[] fromColumns = {"time", "location"};
+        int[] toViews = {android.R.id.text1, android.R.id.text2};
+        mAdapter = new SimpleCursorAdapter(getContext(),
+                android.R.layout.two_line_list_item, cursor,
+                fromColumns, toViews, 0);
+        setListAdapter(mAdapter);
     }
 
     @Override
@@ -60,5 +65,11 @@ public class History extends ListFragment {
     @Override
     public void onDetach() {
         super.onDetach();
+        mDbHelper.close();
+    }
+
+    @Override
+    public void onListItemClick(ListView l, View v, int position, long id) {
+        super.onListItemClick(l, v, position, id);
     }
 }
