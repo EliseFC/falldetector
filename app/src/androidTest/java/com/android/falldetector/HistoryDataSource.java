@@ -36,7 +36,7 @@ public class HistoryDataSource {
     }
 
     public void deleteRec(String location) {
-        mDatabase.delete(HistoryDBHelper.TABLE, HistoryDBHelper.KEY_location
+        mDatabase.delete(HistoryDBHelper.TABLE_NAME, HistoryDBHelper.KEY_LOCATION
                 + " = " + location, null);
     }
 
@@ -45,6 +45,6 @@ public class HistoryDataSource {
     }
 
     public void deleteAll() {
-        mDatabase.delete(HistoryDBHelper.TABLE, null, null);
+        mDbHelper.dropTable();
     }
 }
