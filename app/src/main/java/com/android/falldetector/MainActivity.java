@@ -11,6 +11,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -182,6 +183,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 startActivityForResult(verification, OK_OR_NOT_REQUEST);
                 currRecordInd++; //Remove this line IF text of Accelerometer is different.
                 mDbHelper.insertRec(currTime.toString(), "Thunder Bay", 1);
+                updateHistoryFragment();
             }
         }
     }
@@ -391,6 +393,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
             else if (resultCode == RESULT_I_AM_OK) {
                 mDbHelper.setFalseFall(mDbHelper.getCount());
+                updateHistoryFragment();
             }
             else {
                 return;
@@ -398,6 +401,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
         else {
             super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    private void updateHistoryFragment() {
+        SectionsPagerAdapter adapter = ((SectionsPagerAdapter)mViewPager.getAdapter());
+        History histFrag = (History)adapter.getFragment(2);
+        if (histFrag != null) {
+            histFrag.updateView();
         }
     }
 }

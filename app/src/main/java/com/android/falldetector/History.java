@@ -72,4 +72,9 @@ public class History extends ListFragment {
     public void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
     }
+
+    public void updateView() {
+        Cursor cursor = mDbHelper.getCursor();
+        mAdapter.changeCursor(cursor); // the old cursor is closed automatically
+    }
 }
