@@ -3,6 +3,7 @@ package com.android.falldetector;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
@@ -20,16 +21,16 @@ public class HistoryDBHelper extends SQLiteOpenHelper {
 
     public static final String KEY_TIME = "time";
     public static final String KEY_LOCATION = "location";
-    public static final String KEY_EVAL = "evaluation";
+    public static final String KEY_FEEDBACK = "feedback";
 
     private static final int DATABASE_VERSION = 1;
     private static final String DATABASE_NAME = "DetectInform.db";
     private static final String SQL_CREATE_TABLE =
-            "CREATE TABLE_NAME " + TABLE_NAME
+            "CREATE TABLE " + TABLE_NAME
             + "(" + BaseColumns._ID + " INTEGER PRIMARY KEY, " // Cursor requires '_id'
             + KEY_TIME + " TEXT, "
             + KEY_LOCATION + " TEXT, "
-            + KEY_EVAL + " INTEGER)";
+            + KEY_FEEDBACK + " INTEGER)";
 
     public HistoryDBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -46,20 +47,20 @@ public class HistoryDBHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    boolean insertData(String time_id, String location, int eval) {
+    boolean insertRec(String time_id, String location, int eval) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put(KEY_TIME, time_id);
         contentValues.put(KEY_LOCATION, location);
-        contentValues.put(KEY_EVAL, eval);
+        contentValues.put(KEY_FEEDBACK, eval);
         long newRowId = db.insert(TABLE_NAME, null, contentValues);
         return newRowId != -1;
     }
 
-    //delete information from database by Prime Key
-    public void deleteData(String time_id, String location, int eval) {
+    public void deleteRec(int rowid) {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(TABLE_NAME, KEY_TIME + "=?", new String[]{time_id});
+//        db.delete(TABLE_NAME, KEY_TIME + "=?", new String[]{String.valueOf(rowid)});
+        db.delete(TABLE_NAME, BaseColumns._ID + " = " + rowid, null);
     }
 
     Cursor getCursor() {
@@ -75,9 +76,9 @@ public class HistoryDBHelper extends SQLiteOpenHelper {
         if (cursor.moveToFirst()) {
             do {
                 HashMap<String, String> map = new HashMap<String, String>();
-                map.put("time", cursor.getString(cursor.getColumnIndex(this.KEY_TIME)));
-                map.put("location", cursor.getString(cursor.getColumnIndex(this.KEY_LOCATION)));
-                map.put("evaluation", cursor.getString(cursor.getColumnIndex(this.KEY_EVAL)));
+                map.put("time", cursor.getString(cursor.getColumnIndex(KEY_TIME)));
+                map.put("location", cursor.getString(cursor.getColumnIndex(KEY_LOCATION)));
+                map.put("evaluation", cursor.getString(cursor.getColumnIndex(KEY_FEEDBACK)));
                 recordList.add(map);
             } while (cursor.moveToNext());
         }
@@ -87,6 +88,19 @@ public class HistoryDBHelper extends SQLiteOpenHelper {
 
     void dropTable() {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(HistoryDBHelper.TABLE_NAME, null, null); // DROP TABLE IF EXISTS <table_name>
+        db.delete(TABLE_NAME, null, null); // DROP TABLE IF EXISTS <table_name>
+    }
+
+    long getCount() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        long cnt  = DatabaseUtils.queryNumEntries(db, TABLE_NAME);
+        return cnt;
+    }
+
+    void setFalseFall(long rowid) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        db.execSQL("UPDATE " + HistoryDBHelper.TABLE_NAME
+                + " SET " + HistoryDBHelper.KEY_FEEDBACK + " = 0 WHERE "
+                + BaseColumns._ID + " = " + rowid);
     }
 }

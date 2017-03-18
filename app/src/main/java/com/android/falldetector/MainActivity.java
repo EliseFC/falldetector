@@ -41,9 +41,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private TimerTask ok;
 
     private final int MAX_RECORDS = 200;
-    private final int NUM_FALL_THRESHOLD = 11;
+    private final int NUM_FALL_THRESHOLD = 5;
     private final double FALL_MAG_THRESHOLD = 35;
     private final int REST_THRESHOLD = 20;
+
+    static final int OK_OR_NOT_REQUEST = 0; // request code for OK or not value from Verification activity
+    static final int RESULT_I_AM_OK = RESULT_FIRST_USER + 1;
+    static final int RESULT_I_FELL = RESULT_FIRST_USER + 2; // "I am not OK, I really fell."
 
     private int currRecordInd;
     private int accel_count; // fall occurs if accel_count >= NUM_ACCEL_THRESHOLD
@@ -175,9 +179,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             if (!isAYOActive) {
                 isAYOActive = true;
                 Intent verification = new Intent(this, Verification.class);
-                startActivity(verification);
+                startActivityForResult(verification, OK_OR_NOT_REQUEST);
                 currRecordInd++; //Remove this line IF text of Accelerometer is different.
-                mDbHelper.insertData(currTime.toString(), "Thunder Bay", 1);
+                mDbHelper.insertRec(currTime.toString(), "Thunder Bay", 1);
             }
         }
     }
@@ -351,7 +355,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 int t = c.get(Calendar.HOUR_OF_DAY) * 100 + c.get(Calendar.MINUTE);
                 if (t < from && t > to) {
                     Intent notif = new Intent(MainActivity.this, Verification.class);
-                    startActivity(notif);
+                    startActivityForResult(notif, OK_OR_NOT_REQUEST);
                 } else dispatchTouchEvent(null); //Resets timer if sleeping
             }
         };
@@ -377,5 +381,23 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             e.printStackTrace();
         }
         mDbHelper.close();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == OK_OR_NOT_REQUEST) {
+            if (resultCode == RESULT_CANCELED) {
+                return;
+            }
+            else if (resultCode == RESULT_I_AM_OK) {
+                mDbHelper.setFalseFall(mDbHelper.getCount());
+            }
+            else {
+                return;
+            }
+        }
+        else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
     }
 }
