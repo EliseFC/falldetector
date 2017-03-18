@@ -78,7 +78,7 @@ public class HistoryDBHelper extends SQLiteOpenHelper {
                 HashMap<String, String> map = new HashMap<String, String>();
                 map.put("time", cursor.getString(cursor.getColumnIndex(KEY_TIME)));
                 map.put("location", cursor.getString(cursor.getColumnIndex(KEY_LOCATION)));
-                map.put("evaluation", cursor.getString(cursor.getColumnIndex(KEY_FEEDBACK)));
+                map.put("feedback", cursor.getString(cursor.getColumnIndex(KEY_FEEDBACK)));
                 recordList.add(map);
             } while (cursor.moveToNext());
         }

@@ -42,10 +42,10 @@ public class History extends ListFragment {
         mDbHelper = new HistoryDBHelper(getContext());
 
         Cursor cursor = mDbHelper.getCursor();
-        String[] fromColumns = {"time", "location"};
-        int[] toViews = {android.R.id.text1, android.R.id.text2};
+        String[] fromColumns = {"time", "location", "feedback"};
+        int[] toViews = {R.id.text1, R.id.text2, R.id.text3};
         mAdapter = new SimpleCursorAdapter(getContext(),
-                android.R.layout.two_line_list_item, cursor,
+                R.layout.history_list_item, cursor,
                 fromColumns, toViews, 0);
         setListAdapter(mAdapter);
     }
