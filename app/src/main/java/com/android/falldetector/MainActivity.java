@@ -5,13 +5,13 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -34,17 +34,21 @@ import java.util.TimerTask;
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
     private SensorManager mSensorManager;
-    private Sensor mAccelerometer;
 
     private FileWriter mFileWriter;
+    private HistoryDBHelper mDbHelper;
 
     private Timer checkImmobile = new Timer();
     private TimerTask ok;
 
     private final int MAX_RECORDS = 200;
-    private final int NUM_FALL_THRESHOLD = 11;
+    private final int NUM_FALL_THRESHOLD = 5;
     private final double FALL_MAG_THRESHOLD = 35;
     private final int REST_THRESHOLD = 20;
+
+    static final int OK_OR_NOT_REQUEST = 0; // request code for OK or not value from Verification activity
+    static final int RESULT_I_AM_OK = RESULT_FIRST_USER + 1;
+    static final int RESULT_I_FELL = RESULT_FIRST_USER + 2; // "I am not OK, I really fell."
 
     private int currRecordInd;
     private int accel_count; // fall occurs if accel_count >= NUM_ACCEL_THRESHOLD
@@ -89,8 +93,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         isAYOActive = false;
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_GAME);
+        Sensor accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
 
         File file = new File(getFilesDir(), fileName);
         try {
@@ -99,6 +103,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         } catch (Exception e) {
             e.printStackTrace();
         }
+        mDbHelper = new HistoryDBHelper(this);
     }
 
     @Override
@@ -132,9 +137,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         //---- save sensor data in file
         Calendar calendar = Calendar.getInstance();
-        Date date = calendar.getTime();
+        Date currTime = calendar.getTime();
         try {
-            mFileWriter.append(date.toString()).append(',')
+            mFileWriter.append(currTime.toString()).append(',')
                     .append(Float.toString(ax)).append(',')
                     .append(Float.toString(ay)).append(',')
                     .append(Float.toString(az)).append('\n');
@@ -175,8 +180,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             if (!isAYOActive) {
                 isAYOActive = true;
                 Intent verification = new Intent(this, Verification.class);
-                startActivity(verification);
+                startActivityForResult(verification, OK_OR_NOT_REQUEST);
                 currRecordInd++; //Remove this line IF text of Accelerometer is different.
+                mDbHelper.insertRec(currTime.toString(), "Thunder Bay", 1);
+                updateHistoryFragment();
             }
         }
     }
@@ -250,11 +257,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             Log.d("PlaceholderFragment", "---> onCreateView");
             if (getArguments().getInt(ARG_SECTION_NUMBER) == 2) {
                 return inflater.inflate(R.layout.fragment_alert, container, false);
-            } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 3) {
-                return inflater.inflate(R.layout.fragment_history, container, false);
             } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 4) {
                 return inflater.inflate(R.layout.fragment_statistics, container, false);
-            } else {
+            } else { // should not run into this case
                 return inflater.inflate(R.layout.fragment_main, container, false);
             }
         }
@@ -264,9 +269,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
      * one of the sections/tabs/pages.
      */
-    public class SectionsPagerAdapter extends FragmentPagerAdapter {
+    private class SectionsPagerAdapter extends FragmentPagerAdapter {
 
-        public SectionsPagerAdapter(FragmentManager fm) {
+        SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
         }
 
@@ -285,7 +290,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             mPageReferenceMap.remove(position);
         }
 
-        public Fragment getFragment(int key) {
+        Fragment getFragment(int key) {
             return mPageReferenceMap.get(key);
         }
 
@@ -296,7 +301,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             // Return a Fragment.
             if (position == 0) {
                 return Wave.newInstance(position + 1);
-            } else {
+            } else if (position == 1) {
+                return PlaceholderFragment.newInstance(position + 1);
+            } else if (position == 2) {
+                return History.newInstance();
+            } else if (position == 3) {
+                return PlaceholderFragment.newInstance(position + 1);
+            } else { // should not run into this case
                 return PlaceholderFragment.newInstance(position + 1);
             }
         }
@@ -346,7 +357,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 int t = c.get(Calendar.HOUR_OF_DAY) * 100 + c.get(Calendar.MINUTE);
                 if (t < from && t > to) {
                     Intent notif = new Intent(MainActivity.this, Verification.class);
-                    startActivity(notif);
+                    startActivityForResult(notif, OK_OR_NOT_REQUEST);
                 } else dispatchTouchEvent(null); //Resets timer if sleeping
             }
         };
@@ -370,6 +381,34 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             mFileWriter.close();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+        mDbHelper.close();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == OK_OR_NOT_REQUEST) {
+            if (resultCode == RESULT_CANCELED) {
+                return;
+            }
+            else if (resultCode == RESULT_I_AM_OK) {
+                mDbHelper.setFalseFall(mDbHelper.getCount());
+                updateHistoryFragment();
+            }
+            else {
+                return;
+            }
+        }
+        else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    private void updateHistoryFragment() {
+        SectionsPagerAdapter adapter = ((SectionsPagerAdapter)mViewPager.getAdapter());
+        History histFrag = (History)adapter.getFragment(2);
+        if (histFrag != null) {
+            histFrag.updateView();
         }
     }
 }

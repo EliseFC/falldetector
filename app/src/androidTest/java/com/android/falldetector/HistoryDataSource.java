@@ -3,6 +3,7 @@ package com.android.falldetector;
 import android.content.Context;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.provider.BaseColumns;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -31,13 +32,12 @@ public class HistoryDataSource {
     }
 
     public boolean insertRec() {
-        return mDbHelper.insertData(Calendar.getInstance().getTime().toString(),
+        return mDbHelper.insertRec(Calendar.getInstance().getTime().toString(),
                 "Thunder Bay", 1);
     }
 
-    public void deleteRec(String location) {
-        mDatabase.delete(HistoryDBHelper.TABLE, HistoryDBHelper.KEY_location
-                + " = " + location, null);
+    public void deleteRec(int rowid) {
+        mDbHelper.deleteRec(rowid);
     }
 
     public ArrayList<HashMap<String, String>> getAllRec() {
@@ -45,6 +45,6 @@ public class HistoryDataSource {
     }
 
     public void deleteAll() {
-        mDatabase.delete(HistoryDBHelper.TABLE, null, null);
+        mDbHelper.dropTable();
     }
 }

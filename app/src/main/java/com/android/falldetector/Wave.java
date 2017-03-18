@@ -31,7 +31,6 @@ public class Wave extends Fragment {
      * @param sectionNumber section number of this fragment in the host activity.
      * @return A new instance of fragment Wave.
      */
-    // TODO: Rename and change types and number of parameters
     public static Wave newInstance(int sectionNumber) {
         Wave fragment = new Wave();
         Bundle args = new Bundle();

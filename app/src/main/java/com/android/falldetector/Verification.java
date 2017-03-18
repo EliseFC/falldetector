@@ -63,6 +63,7 @@ public class Verification extends Activity {
                 wl.release();
                 r.stop();
                 tim.cancel();
+                setResult(MainActivity.RESULT_I_AM_OK);
                 finish();
             }
         });
@@ -177,8 +178,10 @@ public class Verification extends Activity {
 //            callIntent.setData(Uri.parse("tel:" + c.cell));
 //            startActivity(callIntent);
 
+            setResult(MainActivity.RESULT_I_FELL);
             finish();
         } else {
+            setResult(MainActivity.RESULT_I_FELL);
             finish();
         }
     }

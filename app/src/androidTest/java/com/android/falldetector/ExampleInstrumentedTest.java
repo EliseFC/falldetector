@@ -48,9 +48,18 @@ public class ExampleInstrumentedTest {
         assertTrue(mDataSource.insertRec());
     }
 
-//    @Test
-//    public void testDeleteAll() {
-//        mDataSource.deleteAll();
-//        assertTrue(mDataSource.getAllRec().isEmpty());
-//    }
+    @Test
+    public void testDeleteOneRec() {
+        mDataSource.deleteRec(1);
+        assertTrue(mDataSource.getAllRec().isEmpty());
+    }
+
+    @Test
+    public void testDeleteAllRec() {
+        mDataSource.insertRec();
+        mDataSource.insertRec();
+        mDataSource.insertRec();
+        mDataSource.deleteAll();
+        assertTrue(mDataSource.getAllRec().isEmpty());
+    }
 }
