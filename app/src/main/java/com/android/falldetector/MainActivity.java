@@ -128,11 +128,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         float ay = event.values[1];
         float az = event.values[2];
 
+        //---- fall detection
+        // 1) get new accelerometer reading
+        float accelValue = ax * ax + ay * ay + az * az;
+
         //---- display sensor data in Wave fragment
         SectionsPagerAdapter adapter = ((SectionsPagerAdapter)mViewPager.getAdapter());
         Wave waveFrag = (Wave)adapter.getFragment(0);
         if (waveFrag != null) {
-            waveFrag.updateView(ax, ay, az);
+            waveFrag.updateView(ax, ay, az, accelValue);
         }
 
         //---- save sensor data in file
@@ -146,10 +150,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        //---- fall detection
-        // 1) get new accelerometer reading
-        float accelValue = ax * ax + ay * ay + az * az;
 
         // 2) record accelerometer difference, then increment currRecordInd
         if (currRecordInd != 0) { // if not the very first record
@@ -300,7 +300,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             // getItem is called to instantiate the fragment for the given page.
             // Return a Fragment.
             if (position == 0) {
-                return Wave.newInstance(position + 1);
+                return Wave.newInstance();
             } else if (position == 1) {
                 return PlaceholderFragment.newInstance(position + 1);
             } else if (position == 2) {
