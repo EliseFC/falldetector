@@ -226,44 +226,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         return super.onOptionsItemSelected(item);
     }
 
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        private static final String ARG_SECTION_NUMBER = "section_number";
-
-        public PlaceholderFragment() {
-        }
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            Log.d("PlaceholderFragment", "---> onCreateView");
-            if (getArguments().getInt(ARG_SECTION_NUMBER) == 2) {
-                return inflater.inflate(R.layout.fragment_alert, container, false);
-            } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 4) {
-                return inflater.inflate(R.layout.fragment_statistics, container, false);
-            } else { // should not run into this case
-                return inflater.inflate(R.layout.fragment_main, container, false);
-            }
-        }
-    }
 
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
@@ -295,20 +257,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
 
         @Override
-        public Fragment getItem(int position) {
+        public Fragment getItem(int position) throws IllegalArgumentException {
             Log.d("SectionsPagerAdapter", "---> getItem " + position);
             // getItem is called to instantiate the fragment for the given page.
             // Return a Fragment.
             if (position == 0) {
                 return Wave.newInstance();
             } else if (position == 1) {
-                return PlaceholderFragment.newInstance(position + 1);
+                return Alert.newInstance();
             } else if (position == 2) {
                 return History.newInstance();
             } else if (position == 3) {
-                return PlaceholderFragment.newInstance(position + 1);
-            } else { // should not run into this case
-                return PlaceholderFragment.newInstance(position + 1);
+                return Statistics.newInstance();
+            } else {
+                throw new IllegalArgumentException(
+                        "position = " + position + " is illegal. It can only be 0, 1, 2, or 3.");
             }
         }
 
@@ -342,34 +305,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void onSettingsButtonClick(View v) {
         Intent settingsIntent = new Intent(this, EditTemplate.class);
         startActivity(settingsIntent);
-    }
-
-    @Override
-    public boolean dispatchTouchEvent(MotionEvent event) { // Whenever ANYTHING is pressed!
-        if (ok != null)
-            ok.cancel();
-
-        ok = new TimerTask() {
-            public void run() {
-                int from = 100;
-                int to = 601;
-                Calendar c = Calendar.getInstance();
-                int t = c.get(Calendar.HOUR_OF_DAY) * 100 + c.get(Calendar.MINUTE);
-                if (t < from && t > to) {
-                    Intent notif = new Intent(MainActivity.this, Verification.class);
-                    startActivityForResult(notif, OK_OR_NOT_REQUEST);
-                } else dispatchTouchEvent(null); //Resets timer if sleeping
-            }
-        };
-        if (event == null) { //If sleeping, sets timer to 10:00am
-            Calendar c = Calendar.getInstance();
-            c.set(Calendar.HOUR_OF_DAY, 10);
-            c.set(Calendar.MINUTE, 0);
-            c.set(Calendar.SECOND, 0);
-            checkImmobile.schedule(ok, c.getTime());
-        } else checkImmobile.schedule(ok, 14400000); //4 Hours == 14400000
-
-        return super.dispatchTouchEvent(event);  //Allows event to continue propagating
     }
 
     @Override
