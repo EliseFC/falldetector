@@ -11,14 +11,11 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -28,34 +25,18 @@ import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
     private SensorManager mSensorManager;
-
     private FileWriter mFileWriter;
     private HistoryDBHelper mDbHelper;
 
-    private Timer checkImmobile = new Timer();
-    private TimerTask ok;
-
-    private final int MAX_RECORDS = 200;
-    private final int NUM_FALL_THRESHOLD = 5;
-    private final double FALL_MAG_THRESHOLD = 35;
-    private final int REST_THRESHOLD = 20;
+    private FallDetectionAlgorithm mAlgorithm;
 
     static final int OK_OR_NOT_REQUEST = 0; // request code for OK or not value from Verification activity
     static final int RESULT_I_AM_OK = RESULT_FIRST_USER + 1;
     static final int RESULT_I_FELL = RESULT_FIRST_USER + 2; // "I am not OK, I really fell."
-
-    private int currRecordInd;
-    private int accel_count; // fall occurs if accel_count >= NUM_ACCEL_THRESHOLD
-    private int idle_count;
-    private boolean cycle;
-
-    private float[] accel_data;
 
     private boolean isAYOActive;
     private static final String fileName = "acc.csv";
@@ -104,6 +85,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             e.printStackTrace();
         }
         mDbHelper = new HistoryDBHelper(this);
+
+        mAlgorithm = new SimpleAlgorithm();
     }
 
     @Override
@@ -111,11 +94,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         Log.d("MainActivity", "------> onResume");
         super.onResume();
         isAYOActive = false;
-        currRecordInd = 0;
-        accel_count = 0;
-        cycle = false;
-        idle_count = 0;
-        accel_data = new float[MAX_RECORDS];
+        mAlgorithm.initialize();
     }
 
     @Override
@@ -128,15 +107,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         float ay = event.values[1];
         float az = event.values[2];
 
-        //---- fall detection
-        // 1) get new accelerometer reading
-        float accelValue = ax * ax + ay * ay + az * az;
+        mAlgorithm.update(ax, ay, az);
 
         //---- display sensor data in Wave fragment
         SectionsPagerAdapter adapter = ((SectionsPagerAdapter)mViewPager.getAdapter());
         Wave waveFrag = (Wave)adapter.getFragment(0);
         if (waveFrag != null) {
-            waveFrag.updateView(ax, ay, az, accelValue);
+            waveFrag.updateView(ax, ay, az, ((SimpleAlgorithm) mAlgorithm).getLatestData());
         }
 
         //---- save sensor data in file
@@ -151,40 +128,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             e.printStackTrace();
         }
 
-        // 2) record accelerometer difference, then increment currRecordInd
-        if (currRecordInd != 0) { // if not the very first record
-
-            // 3) update accel_count
-            boolean newRecordTap = accelValue < FALL_MAG_THRESHOLD;
-            boolean oldRecordTap = accel_data[currRecordInd] < FALL_MAG_THRESHOLD;
-            if (newRecordTap) {
-                if (!oldRecordTap || !cycle) {
-                    accel_count++;
-                }
-                idle_count = 0;
-            } else {
-                if (oldRecordTap && cycle) {
-                    accel_count--;
-                }
-                idle_count++;
-                if (idle_count >= REST_THRESHOLD)
-                    accel_count = Math.max(0, accel_count - 2);
-            }
-        }
-        accel_data[currRecordInd] = accelValue;
-        currRecordInd = (currRecordInd + 1) % MAX_RECORDS;
-
-        // 4) check if accel_count threshold is met, if so switch activity
-        if (accel_count >= NUM_FALL_THRESHOLD) {
-            //Need to check if the "are you okay is already called"
+        if (mAlgorithm.isFall()) {
+            // Need to check if the "are you okay is already called"
             if (!isAYOActive) {
                 isAYOActive = true;
                 Intent verification = new Intent(this, Verification.class);
                 startActivityForResult(verification, OK_OR_NOT_REQUEST);
-                currRecordInd++; //Remove this line IF text of Accelerometer is different.
                 mDbHelper.insertRec(currTime.toString(), "Thunder Bay", 1);
                 updateHistoryFragment();
             }
+            mAlgorithm.clearFallFlag();
         }
     }
 
