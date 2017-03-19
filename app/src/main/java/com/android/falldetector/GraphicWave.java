@@ -69,6 +69,6 @@ public class GraphicWave extends AppCompatActivity {
     // add random data to graph
     private void addEntry() {
         // here, we choose to display max 10 points on the viewport and we scroll to end
-        series.appendData(new DataPoint(lastX++, RANDOM.nextDouble() * 10d), true, 10);
+        series.appendData(new DataPoint(lastX++, RANDOM.nextDouble() * 10d), false, 10);
     }
 }
