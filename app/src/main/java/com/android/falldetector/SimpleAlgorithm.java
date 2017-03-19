@@ -8,7 +8,7 @@ package com.android.falldetector;
  * Created by duanp on 3/19/2017.
  */
 
-public class SimpleAlgorithm implements FallDetectionAlgorithm {
+class SimpleAlgorithm implements FallDetectionAlgorithm {
     private static final int MAX_RECORDS = 200;
     private static final int NUM_FALL_THRESHOLD = 5;
     private static final double FALL_MAG_THRESHOLD = 35;
@@ -80,7 +80,7 @@ public class SimpleAlgorithm implements FallDetectionAlgorithm {
         mIsFall = false;
     }
 
-    public float getLatestData() {
+    float getLatestData() {
         return mCurrData;
     }
 }
