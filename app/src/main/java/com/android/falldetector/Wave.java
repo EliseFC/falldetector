@@ -1,6 +1,5 @@
 package com.android.falldetector;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -58,16 +57,6 @@ public class Wave extends Fragment {
         graph.getViewport().setMaxX(MAX_NUM_DATAPOINTS);
 
         return rootView;
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
     }
 
     public void updateView(float ax, float ay, float az, float accelValue) {
