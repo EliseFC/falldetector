@@ -10,4 +10,5 @@ public interface FallDetectionAlgorithm {
     void update(float ax, float ay, float az); // update the internal data (state)
     boolean isFall(); // get the result based on the current state (internal data)
     void clearFallFlag(); // should be called after calling isFall()
+    void unregisterSensorListener();
 }

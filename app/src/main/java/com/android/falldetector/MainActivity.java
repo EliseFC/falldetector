@@ -26,13 +26,13 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 
-public class MainActivity extends AppCompatActivity implements SensorEventListener {
+public class MainActivity extends AppCompatActivity {
 
-    private SensorManager mSensorManager;
     private FileWriter mFileWriter;
     private HistoryDBHelper mDbHelper;
 
     private FallDetectionAlgorithm mAlgorithm;
+    private static final int algorithmType = 0; // 0: simple algorithm; 1: gradient algorithm
 
     static final int OK_OR_NOT_REQUEST = 0; // request code for OK or not value from Verification activity
     static final int RESULT_I_AM_OK = RESULT_FIRST_USER + 1;
@@ -60,7 +60,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
       may be best to switch to a
       {@link android.support.v4.app.FragmentStatePagerAdapter}.
      */
-        SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+        SectionsPagerAdapter sectionsPagerAdapter =
+                new SectionsPagerAdapter(getSupportFragmentManager());
 
         // Set up the ViewPager with the sections adapter.
         /*
@@ -73,9 +74,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         tabLayout.setupWithViewPager(mViewPager);
 
         isAYOActive = false;
-        mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        Sensor accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
+        if (algorithmType == 0) {
+            mAlgorithm = new SimpleAlgorithm(this);
+        }
+        else if (algorithmType == 1) {
+            mAlgorithm = new GradientAlgorithm(this);
+        }
 
         File file = new File(getFilesDir(), fileName);
         try {
@@ -85,8 +89,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             e.printStackTrace();
         }
         mDbHelper = new HistoryDBHelper(this);
-
-        mAlgorithm = new SimpleAlgorithm();
     }
 
     @Override
@@ -95,55 +97,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onResume();
         isAYOActive = false;
         mAlgorithm.initialize();
-    }
-
-    @Override
-    public void onSensorChanged(SensorEvent event) {
-        Log.d("MainActivity", "==============> onSensorChanged");
-        if (event.sensor.getType() != Sensor.TYPE_ACCELEROMETER) {
-            return;
-        }
-        float ax = event.values[0];
-        float ay = event.values[1];
-        float az = event.values[2];
-
-        mAlgorithm.update(ax, ay, az);
-
-        //---- display sensor data in Wave fragment
-        SectionsPagerAdapter adapter = ((SectionsPagerAdapter)mViewPager.getAdapter());
-        Wave waveFrag = (Wave)adapter.getFragment(0);
-        if (waveFrag != null) {
-            waveFrag.updateView(ax, ay, az, ((SimpleAlgorithm) mAlgorithm).getLatestData());
-        }
-
-        //---- save sensor data in file
-        Calendar calendar = Calendar.getInstance();
-        Date currTime = calendar.getTime();
-        try {
-            mFileWriter.append(currTime.toString()).append(',')
-                    .append(Float.toString(ax)).append(',')
-                    .append(Float.toString(ay)).append(',')
-                    .append(Float.toString(az)).append('\n');
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        if (mAlgorithm.isFall()) {
-            // Need to check if the "are you okay is already called"
-            if (!isAYOActive) {
-                isAYOActive = true;
-                Intent verification = new Intent(this, Verification.class);
-                startActivityForResult(verification, OK_OR_NOT_REQUEST);
-                mDbHelper.insertRec(currTime.toString(), "Thunder Bay", 1);
-                updateHistoryFragment();
-            }
-            mAlgorithm.clearFallFlag();
-        }
-    }
-
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
     }
 
     @Override
@@ -166,13 +119,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-
             Intent intent = new Intent(this, EditTemplate.class);
             startActivity(intent);
-
             return true;
         }
 
@@ -264,7 +213,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onDestroy() {
         Log.d("MainActivity", "------> onDestroy");
         super.onDestroy();
-        mSensorManager.unregisterListener(this);
+        mAlgorithm.unregisterSensorListener();
         try {
             mFileWriter.close();
         } catch (IOException e) {
@@ -297,6 +246,50 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         History histFrag = (History)adapter.getFragment(2);
         if (histFrag != null) {
             histFrag.updateView();
+        }
+    }
+
+    void updateWaveFragment(float[] args) {
+        SectionsPagerAdapter adapter = ((SectionsPagerAdapter)mViewPager.getAdapter());
+        Wave waveFrag = (Wave)adapter.getFragment(0);
+        if (waveFrag != null) {
+            if (algorithmType == 0) {
+                float ax = args[0];
+                float ay = args[1];
+                float az = args[2];
+                waveFrag.updateView(ax, ay, az, ((SimpleAlgorithm) mAlgorithm).getLatestData());
+            }
+            else {
+
+            }
+        }
+    }
+
+    void saveDataToFile(float[] args) {
+        Calendar calendar = Calendar.getInstance();
+        Date currTime = calendar.getTime();
+        float ax = args[0];
+        float ay = args[1];
+        float az = args[2];
+        try {
+            mFileWriter.append(currTime.toString()).append(',')
+                    .append(Float.toString(ax)).append(',')
+                    .append(Float.toString(ay)).append(',')
+                    .append(Float.toString(az)).append('\n');
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    void doSomethingWhenFall() {
+        if (!isAYOActive) {
+            isAYOActive = true;
+            Intent verification = new Intent(this, Verification.class);
+            startActivityForResult(verification, OK_OR_NOT_REQUEST);
+            Calendar calendar = Calendar.getInstance();
+            Date currTime = calendar.getTime();
+            mDbHelper.insertRec(currTime.toString(), "Thunder Bay", 1);
+            updateHistoryFragment();
         }
     }
 }

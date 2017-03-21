@@ -1,5 +1,17 @@
 package com.android.falldetector;
 
+import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.util.Log;
+
+import java.util.Calendar;
+import java.util.Date;
+
+import static android.content.Context.SENSOR_SERVICE;
+
 /**
  * Simple fall detection algorithm that computes a = ax^2 + ay^2 + az^2,
  * and reports a fall when a < threshold for a certain number of times continuously.
@@ -8,7 +20,11 @@ package com.android.falldetector;
  * Created by duanp on 3/19/2017.
  */
 
-class SimpleAlgorithm implements FallDetectionAlgorithm {
+class SimpleAlgorithm implements FallDetectionAlgorithm, SensorEventListener{
+
+    private MainActivity mActivity;
+    private SensorManager mSensorManager;
+
     private static final int MAX_RECORDS = 200;
     private static final int NUM_FALL_THRESHOLD = 5;
     private static final double FALL_MAG_THRESHOLD = 35;
@@ -22,7 +38,11 @@ class SimpleAlgorithm implements FallDetectionAlgorithm {
     private float mCurrData = 0.0f; // square sum of accelerations in x, y, and z directions
     private boolean mIsFall = false;
 
-    public SimpleAlgorithm() {
+    SimpleAlgorithm(MainActivity activity) {
+        mActivity = activity;
+        mSensorManager = (SensorManager)activity.getSystemService(SENSOR_SERVICE);
+        Sensor accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
         initialize();
     }
 
@@ -82,5 +102,41 @@ class SimpleAlgorithm implements FallDetectionAlgorithm {
 
     float getLatestData() {
         return mCurrData;
+    }
+
+    @Override
+    public void unregisterSensorListener() {
+        mSensorManager.unregisterListener(this);
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        Log.d("SimpleAlgorithm", "==============> onSensorChanged");
+        if (event.sensor.getType() != Sensor.TYPE_ACCELEROMETER) {
+            return;
+        }
+        float ax = event.values[0];
+        float ay = event.values[1];
+        float az = event.values[2];
+
+        this.update(ax, ay, az);
+
+        float[] args = new float[] {ax, ay, az};
+        //---- display sensor data in Wave fragment
+        mActivity.updateWaveFragment(args);
+
+        //---- save sensor data in file
+        mActivity.saveDataToFile(args);
+
+        if (this.isFall()) {
+            // Need to check if the "are you okay is already called"
+            mActivity.doSomethingWhenFall();
+            this.clearFallFlag();
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
     }
 }
