@@ -7,6 +7,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -14,6 +15,8 @@ import android.view.ViewGroup;
  * create an instance of this fragment.
  */
 public class Statistics extends Fragment {
+
+    private HistoryDBHelper mDbHelper;
 
     public Statistics() {
         // Required empty public constructor
@@ -25,8 +28,9 @@ public class Statistics extends Fragment {
      *
      * @return A new instance of fragment Statistics.
      */
-    public static Statistics newInstance() {
+    public static Statistics newInstance(HistoryDBHelper dbhelper) {
         Statistics fragment = new Statistics();
+        fragment.mDbHelper = dbhelper;
         return fragment;
     }
 
@@ -34,6 +38,21 @@ public class Statistics extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_statistics, container, false);
+        View v = inflater.inflate(R.layout.fragment_statistics, container, false);
+        updateView(v, mDbHelper);
+        return v;
+    }
+
+    void updateView(View v, HistoryDBHelper dbHelper) {
+        TextView tvTotalFalls = (TextView) v.findViewById(R.id.total_fall_value);
+        tvTotalFalls.setText(String.valueOf(dbHelper.getCount()));
+        TextView tvTruePositive = (TextView) v.findViewById(R.id.true_positive_value);
+        tvTruePositive.setText(String.valueOf(dbHelper.getTrueFallsCount()));
+        TextView tvFalsePositive = (TextView) v.findViewById(R.id.false_positive_value);
+        tvFalsePositive.setText(String.valueOf(dbHelper.getFalseFallsCount()));
+    }
+
+    void updateView(HistoryDBHelper dbHelper) {
+        updateView(getView(), dbHelper);
     }
 }

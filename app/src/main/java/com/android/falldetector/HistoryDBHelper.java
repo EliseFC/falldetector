@@ -103,4 +103,30 @@ public class HistoryDBHelper extends SQLiteOpenHelper {
                 + " SET " + HistoryDBHelper.KEY_FEEDBACK + " = 0 WHERE "
                 + BaseColumns._ID + " = " + rowid);
     }
+
+    long getTrueFallsCount() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME
+                + " WHERE " + HistoryDBHelper.KEY_FEEDBACK + " = ?",
+                new String[] {"1"});
+        if (cursor != null) {
+            return cursor.getCount();
+        }
+        else {
+            return -1;
+        }
+    }
+
+    long getFalseFallsCount() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME
+                        + " WHERE " + HistoryDBHelper.KEY_FEEDBACK + " = ?",
+                new String[] {"0"});
+        if (cursor != null) {
+            return cursor.getCount();
+        }
+        else {
+            return -1;
+        }
+    }
 }
