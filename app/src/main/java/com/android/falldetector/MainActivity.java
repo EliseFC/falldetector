@@ -184,6 +184,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 currRecordInd++; //Remove this line IF text of Accelerometer is different.
                 mDbHelper.insertRec(currTime.toString(), "Thunder Bay", 1);
                 updateHistoryFragment();
+                updateStatisticsFragment();
             }
         }
     }
@@ -268,7 +269,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             } else if (position == 2) {
                 return History.newInstance();
             } else if (position == 3) {
-                return Statistics.newInstance();
+                return Statistics.newInstance(mDbHelper);
             } else {
                 throw new IllegalArgumentException(
                         "position = " + position + " is illegal. It can only be 0, 1, 2, or 3.");
@@ -329,6 +330,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             else if (resultCode == RESULT_I_AM_OK) {
                 mDbHelper.setFalseFall(mDbHelper.getCount());
                 updateHistoryFragment();
+                updateStatisticsFragment();
             }
             else {
                 return;
@@ -344,6 +346,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         History histFrag = (History)adapter.getFragment(2);
         if (histFrag != null) {
             histFrag.updateView();
+        }
+    }
+
+    private void updateStatisticsFragment() {
+        SectionsPagerAdapter adapter = ((SectionsPagerAdapter)mViewPager.getAdapter());
+        Statistics statistics = (Statistics)adapter.getFragment(3);
+        if (statistics != null) {
+            statistics.updateView(mDbHelper);
         }
     }
 }

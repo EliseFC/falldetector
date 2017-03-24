@@ -16,6 +16,8 @@ import android.widget.TextView;
  */
 public class Statistics extends Fragment {
 
+    private HistoryDBHelper mDbHelper;
+
     public Statistics() {
         // Required empty public constructor
     }
@@ -26,8 +28,9 @@ public class Statistics extends Fragment {
      *
      * @return A new instance of fragment Statistics.
      */
-    public static Statistics newInstance() {
+    public static Statistics newInstance(HistoryDBHelper dbhelper) {
         Statistics fragment = new Statistics();
+        fragment.mDbHelper = dbhelper;
         return fragment;
     }
 
@@ -36,13 +39,20 @@ public class Statistics extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_statistics, container, false);
-
-        TextView tvTotalFalls = (TextView) v.findViewById(R.id.total_fall_value);
-        tvTotalFalls.setText("22");
-        TextView tvTruePositive = (TextView) v.findViewById(R.id.true_positive_value);
-        tvTruePositive.setText("20");
-        TextView tvFalsePositive = (TextView) v.findViewById(R.id.false_positive_value);
-        tvFalsePositive.setText("2");
+        updateView(v, mDbHelper);
         return v;
+    }
+
+    void updateView(View v, HistoryDBHelper dbHelper) {
+        TextView tvTotalFalls = (TextView) v.findViewById(R.id.total_fall_value);
+        tvTotalFalls.setText(String.valueOf(dbHelper.getCount()));
+        TextView tvTruePositive = (TextView) v.findViewById(R.id.true_positive_value);
+        tvTruePositive.setText(String.valueOf(dbHelper.getTrueFallsCount()));
+        TextView tvFalsePositive = (TextView) v.findViewById(R.id.false_positive_value);
+        tvFalsePositive.setText(String.valueOf(dbHelper.getFalseFallsCount()));
+    }
+
+    void updateView(HistoryDBHelper dbHelper) {
+        updateView(getView(), dbHelper);
     }
 }
