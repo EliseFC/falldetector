@@ -7,6 +7,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -34,6 +35,14 @@ public class Statistics extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_statistics, container, false);
+        View v = inflater.inflate(R.layout.fragment_statistics, container, false);
+
+        TextView tvTotalFalls = (TextView) v.findViewById(R.id.total_fall_value);
+        tvTotalFalls.setText("22");
+        TextView tvTruePositive = (TextView) v.findViewById(R.id.true_positive_value);
+        tvTruePositive.setText("20");
+        TextView tvFalsePositive = (TextView) v.findViewById(R.id.false_positive_value);
+        tvFalsePositive.setText("2");
+        return v;
     }
 }

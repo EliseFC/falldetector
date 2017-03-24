@@ -31,9 +31,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="az: " />
-
-    <com.jjoe64.graphview.GraphView
+    <TextView
+        android:id="@+id/aa"
         android:layout_below="@id/az"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="aa = ax^2 + ay^2 + az^2:" />
+    <com.jjoe64.graphview.GraphView
+        android:layout_below="@id/aa"
         android:layout_width="match_parent"
         android:layout_height="200dip"
         android:id="@+id/graph" />
